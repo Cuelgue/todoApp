@@ -86,22 +86,43 @@ long cargar_file(FILE *f,unsigned char **file_buffer)
 }
 
 
-void reset_input(char *cad, int *size)
-{
-  free(cad);
-  *size = 0;
-}
 
 
-void agregar_en_lista(tarea_t *tareas, char *cad, int size)
+void agregar_en_lista(tarea_t *tareas, char cad)
 {
-  tareas->lista[tareas->cantidad] = (char*)malloc(size + 1);
+  tareas->lista[tareas->cantidad] = strdup(&cad);
   if (tareas->lista[tareas->cantidad] == NULL) {
     fprintf(stderr,"MALOCC ERROR: No se pudo reserver memoria\n",__LINE__);
     exit(1);
   }
+  
   tareas->cantidad++;
     
+}
+
+//Aca simplemente se hace un desplazo de todos los elementos restantes del array.
+void eliminar_tarea(tarea_t *tarea, int pos)
+{
+  int posR = pos - 1;
+  if (posR >= 0 && posR < tarea->cantidad) {
+    for (int i = posR; i < tarea->cantidad -1; i++){
+      tarea->lista[i] = tarea->lista[i + 1];
+    }
+    tarea->cantidad--;
+  } 
+ 
+}
+
+void resetear_tarea(estado_t *tareas, int pos)
+{
+  /*Vamos a explicar esto: tareas->incompleta.cantidad siempre esta +1 por encima
+  del contador, los indices empiezan en 0, por lo que uso cantidad como indice
+  Ademas tengo pos, que aparece como la posicion real + 1
+  por lo que tengo que restarle 1 a pos para que de ael indice correcto.u
+  */
+  tareas->incompleta.lista[tareas->incompleta.cantidad] = tareas->completa.lista[pos - 1];
+  tareas->incompleta.cantidad++;
+  eliminar_tarea(&tareas->incompleta,pos);
 }
 
 
