@@ -20,6 +20,17 @@
 #define ARCHIVO ".tareas"
 #define PATH ".config/"
 
+// Estas lineas son las que van a separar en el archivo las tareas.
+#define TAREAS_COMPLETAS "# COMPLETAS\n"
+#define TAREAS_INCOMPLETAS "# INCOMPLETAS\n"
+#define MAX_LE 15
+//No es lo mas optimo pero hacer una table hash me parecio mucho
+#define COMANDOS ((const char*[])  {"add","ls","rm","rst","lin"})
+
+  
+
+
+
 typedef struct {
   char *lista[MAX_TAREA];
   int cantidad;
@@ -62,6 +73,7 @@ long size_file(FILE *f)
   if (f == NULL) exit(1);
   //Voy al final del archivo
   int fs = fseek(f,0L,SEEK_END);
+  (void) fs;
   //guardo la longitud del archivo
   long n = ftell(f);
   if (n < 0) {
@@ -81,6 +93,7 @@ long cargar_file(FILE *f,unsigned char **file_buffer)
   if (size > 0) {
   *file_buffer = (unsigned char*)malloc(size + 1);
   size_t ret = fread(*file_buffer,size,1,f);
+  (void)ret;
   } 
   return size;
 }
@@ -88,14 +101,13 @@ long cargar_file(FILE *f,unsigned char **file_buffer)
 
 
 
-void agregar_en_lista(tarea_t *tareas, char cad)
+void agregar_en_lista(tarea_t *tareas, char *cad)
 {
-  tareas->lista[tareas->cantidad] = strdup(&cad);
+  tareas->lista[tareas->cantidad] = strdup(cad);
   if (tareas->lista[tareas->cantidad] == NULL) {
-    fprintf(stderr,"MALOCC ERROR: No se pudo reserver memoria\n",__LINE__);
+    fprintf(stderr,"MALLOC ERROR: No se pudo reserver memoria\n",__LINE__);
     exit(1);
   }
-  
   tareas->cantidad++;
     
 }
@@ -126,12 +138,47 @@ void resetear_tarea(estado_t *tareas, int pos)
 }
 
 
-int main()
+
+
+void cargar_listas(estado_t *tareas, FILE *f)
 {
+  char lineaDeEstado[MAX_LE];
+  char linea[MAX_TAREA];
+  while (fgets(linea,MAX_TAREA,f) != NULL) {
+
+    if (linea[0] == '#') {
+      strcpy(lineaDeEstado,linea);
+    } else {
+      if (strcoll(lineaDeEstado,TAREAS_COMPLETAS)) {
+        agregar_en_lista(&tareas->completa,linea);
+      } else {
+        agregar_en_lista(&tareas->incompleta,linea);
+      }
+    }
+  }
+
+}
+  
+void imp_lista(tarea_t lista)
+{
+  for (int i = 0; i < lista.cantidad; i++){
+    printf("%s\n",lista.lista[i]);
+  }
+}
+
+
+int main(int argc, char **argv)
+{
+  (void)argc;
+  (void)argv;
   char cadena[BUFFER];
   char full_path[256];
   int size_cadena;
   estado_t tareas;
+  (void)size_cadena;
+  (void)cadena;
+  tareas.completa.cantidad = 0;
+  tareas.incompleta.cantidad = 0;
   //acá armo la ruta absoluta
   snprintf(full_path,sizeof(full_path),"%s/%s%s",getenv("HOME"),PATH,ARCHIVO);
   FILE *f = fopen(full_path,"r+");
@@ -143,19 +190,22 @@ int main()
       //Puede que sea redundante pero no se me ocurre una mejopr manera
       //La idea es "Si el archivo no existe lo creo, si no lo puedo crear mando error"
       perror("fopen (r)");
-      //      fprintf(stderr,"ERROR: No se pudo abrir el archivo %s\n",ARCHIVO);
       exit(1);
     }
 
 
   }
-  unsigned char *file_buffer = NULL;
-  if (cargar_file(f,&file_buffer) == 0) {
+  if (size_file(f) == 0) {
     printf("No se han cargado tareas\n");
+  } else {
+    cargar_listas(&tareas,f);
   }
+  imp_lista(tareas.incompleta);
+  imp_lista(tareas.completa);
   //agregar_tarea(cadena);
   //completar_tarea(cadena);
   //printf("%s\n",cadena);
   fclose(f);
   return 0;
 }
+
