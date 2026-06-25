@@ -25,7 +25,7 @@
 #define TAREAS_INCOMPLETAS "# INCOMPLETAS\n"
 #define MAX_LE 15
 //No es lo mas optimo pero hacer una table hash me parecio mucho
-#define COMANDOS ((const char*[])  {"add","ls","rm","rst","lin"})
+#define COMANDOS ((const char*[])  {"add","ls","rm","rst","lc"})
 
   
 
@@ -210,6 +210,7 @@ void ejecutar_comando(estado_t *tareas, char *comando)
   //Esto es bastante sucio pero por el momento va a funcionar
   //La desgracia es que cada vez que agregue un comendo el if else va a se4r mas grande
   char cad[BUFFER];
+  int nt;
   if (strcoll(comando,COMANDOS[0]) == 0 ) {
     agregar_tarea(cad);
     //{"add","ls","rm","rst","lin"})
@@ -225,12 +226,17 @@ void ejecutar_comando(estado_t *tareas, char *comando)
       if (nl == 0) lista = &tareas->incompleta;
       else if (nl == 1) lista = &tareas->completa;
 
-      int nt;
       scanf("%d",&nt);
       if (nt > 0 && nt <= lista->cantidad) eliminar_tarea (lista,nt);
     }
+  } else if (strcoll(comando,COMANDOS[3]) == 0) {
+    imp_lista(tareas->completa);
+    printf("Seleccione la tarea a resetear(1..%d):\n",tareas->completa.cantidad);
+    scanf("%d",&nt);
+    resetear_tarea(tareas,nt);
+  } else if (strcoll(comando,COMANDOS[4]) == 0) {
+    imp_lista(tareas->completa);
   }
-
 }
 
 
@@ -242,12 +248,8 @@ int main(int argc, char **argv)
 {
   (void)argc;
   (void)argv;
-  char cadena[BUFFER];
   char full_path[256];
-  int size_cadena;
   estado_t tareas;
-  (void)size_cadena;
-  (void)cadena;
   tareas.completa.cantidad = 0;
   tareas.incompleta.cantidad = 0;
   //acá armo la ruta absoluta
@@ -271,11 +273,9 @@ int main(int argc, char **argv)
   } else {
     cargar_listas(&tareas,f);
   }
-  imp_lista(tareas.incompleta);
-  imp_lista(tareas.completa);
-  //agregar_tarea(cadena);
-  //completar_tarea(cadena);
-  //printf("%s\n",cadena);
+
+  if (argc == 2) ejecutar_comando(&tareas,argv[1]);
+  else if (argc > 2) fprintf(stderr, "ERROR: Demasiados argumentos\n");
   fclose(f);
   return 0;
 }
