@@ -25,7 +25,7 @@
 #define TAREAS_INCOMPLETAS "# INCOMPLETAS\n"
 #define MAX_LE 15
 //No es lo mas optimo pero hacer una table hash me parecio mucho
-#define COMANDOS ((const char*[])  {"add","ls","rm","rst","lc"})
+#define COMANDOS ((const char*[])  {"-add","-li","-rm","-rst","-lc"})
 
   
 
@@ -51,6 +51,7 @@ void agregar_tarea(char cad[])
   int salto = strlen(cad);
   cad[salto - 1] = '\0';
   strncat(cad,INCOMPLETA,sizeof(&cad) - strlen(cad) - 1);
+  strncat(cad,"\n",sizeof(&cad) - strlen(cad) - 1);
 }
 
 void completar_tarea(char cad[])
@@ -105,7 +106,7 @@ void agregar_en_lista(tarea_t *tareas, char *cad)
 {
   tareas->lista[tareas->cantidad] = strdup(cad);
   if (tareas->lista[tareas->cantidad] == NULL) {
-    fprintf(stderr,"MALLOC ERROR: No se pudo reserver memoria\n",__LINE__);
+    fprintf(stderr,"MALLOC ERROR: No se pudo reserver memoria\n");
     exit(1);
   }
   tareas->cantidad++;
@@ -127,14 +128,14 @@ void eliminar_tarea(tarea_t *tarea, int pos)
 
 void resetear_tarea(estado_t *tareas, int pos)
 {
-  /*Vamos a explicar esto: tareas->incompleta.cantidad siempre esta +0 por encima
+  /*Vamos a explicar esto: tareas->incompleta.cantidad siempre esta +1 por encima
   del contador, los indices empiezan en 0, por lo que uso cantidad como indice
   Ademas tengo pos, que aparece como la posicion real + 1
   por lo que tengo que restarle 1 a pos para que de ael indice correcto.u
   */
   tareas->incompleta.lista[tareas->incompleta.cantidad] = tareas->completa.lista[pos - 1];
   tareas->incompleta.cantidad++;
-  eliminar_tarea(&tareas->incompleta,pos);
+  eliminar_tarea(&tareas->completa,pos);
 }
 
 
@@ -162,7 +163,7 @@ void cargar_listas(estado_t *tareas, FILE *f)
 void imp_lista(tarea_t lista)
 {
   for (int i = 0; i < lista.cantidad; i++){
-    printf("%d - %s\n",i + 1,lista.lista[i]);
+    printf("%d - %s",i + 1,lista.lista[i]);
   }
 }
 
@@ -213,7 +214,9 @@ void ejecutar_comando(estado_t *tareas, char *comando)
   int nt;
   if (strcoll(comando,COMANDOS[0]) == 0 ) {
     agregar_tarea(cad);
+    agregar_en_lista(&tareas->incompleta,cad);
     //{"add","ls","rm","rst","lin"})
+    imp_lista(tareas->incompleta);
   } else if (strcoll(comando,COMANDOS[1]) == 0) {
     imp_lista(tareas->incompleta);
   } else if (strcoll(comando,COMANDOS[2]) == 0) {
@@ -227,27 +230,32 @@ void ejecutar_comando(estado_t *tareas, char *comando)
       else if (nl == 1) lista = &tareas->completa;
 
       scanf("%d",&nt);
-      if (nt > 0 && nt <= lista->cantidad) eliminar_tarea (lista,nt);
+      if (nt > 0 && nt <= lista->cantidad) {
+        printf("Tareas eliminada: %s\n",lista->lista[nt -1]);
+        eliminar_tarea (lista,nt);
+
+      }
+    } else if (strcoll(comando,COMANDOS[3]) == 0) {
+      imp_lista(tareas->completa);
+      printf("Seleccione la tarea a resetear(1..%d):\n",tareas->completa.cantidad);
+      scanf("%d",&nt);
+      resetear_tarea(tareas,nt);
+      imp_lista(tareas->incompleta);
+    } else if (strcoll(comando,COMANDOS[4]) == 0) {
+      imp_lista(tareas->completa);
     }
-  } else if (strcoll(comando,COMANDOS[3]) == 0) {
-    imp_lista(tareas->completa);
-    printf("Seleccione la tarea a resetear(1..%d):\n",tareas->completa.cantidad);
-    scanf("%d",&nt);
-    resetear_tarea(tareas,nt);
-  } else if (strcoll(comando,COMANDOS[4]) == 0) {
-    imp_lista(tareas->completa);
   }
 }
 
 
-
-
+int guardar_file(FILE *f, estado_t tareas)
+{
+  
+}
 
 
 int main(int argc, char **argv)
 {
-  (void)argc;
-  (void)argv;
   char full_path[256];
   estado_t tareas;
   tareas.completa.cantidad = 0;
