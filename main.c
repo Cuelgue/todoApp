@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+
 /*
   No deberia por ningún motivo ser insuficiente,
   teniendo en cuenta que esto no pretende ser
@@ -27,8 +29,7 @@
 //No es lo mas optimo pero hacer una table hash me parecio mucho
 #define COMANDOS ((const char*[])  {"-add","-li","-rm","-rst","-lc"})
 
-  
-
+#define UNO 49
 
 
 typedef struct {
@@ -129,10 +130,15 @@ void agregar_en_lista(tarea_t *tareas, char *cad)
 }
 
 //Aca simplemente se hace un desplazo de todos los elementos restantes del array.
-void eliminar_tarea(tarea_t *tarea, int pos)
+void eliminar_tarea(tarea_t *tarea, int pos, bool vf)
 {
   int posR = pos - 1;
   if (posR >= 0 && posR < tarea->cantidad) {
+  //acá el tema es el siguiente, esta funcion ademas la estoy usando
+  //Para hacer un reset, tengo dos alternativas o usar un booleano
+  //para decidir si hacer un free de la cadena, segun corresponda 
+  if (vf) free(tarea->lista[posR]);
+
     for (int i = posR; i < tarea->cantidad -1; i++){
       tarea->lista[i] = tarea->lista[i + 1];
     }
@@ -150,7 +156,7 @@ void resetear_tarea(estado_t *tareas, int pos)
   */
   tareas->incompleta.lista[tareas->incompleta.cantidad] = tareas->completa.lista[pos - 1];
   tareas->incompleta.cantidad++;
-  eliminar_tarea(&tareas->completa,pos);
+  eliminar_tarea(&tareas->completa,pos,false);
 }
 
 
@@ -247,7 +253,7 @@ void ejecutar_comando(estado_t *tareas, char *comando)
       scanf("%d",&nt);
       if (nt > 0 && nt <= lista->cantidad) {
         printf("Tareas eliminada: %s\n",lista->lista[nt -1]);
-        eliminar_tarea (lista,nt);
+        eliminar_tarea (lista,nt,true);
 
       }
     } else if (strcoll(comando,COMANDOS[3]) == 0) {
@@ -273,6 +279,34 @@ int guardar_file(FILE *f, tarea_t tareas, char *tipo)
   }
   return n;
 }
+
+
+void menu(estado_t *tareas)
+{
+  char c;
+  do {
+    do {
+      printf("Seleccione la opcion deseada o presione 'q' para salir: \n");
+      printf("\t1 - Agregar nueva tarea \n"); 
+      printf("\t2 - Listar tareas pendientes\n"); 
+      printf("\t3 - Eliminar tarea \n"); 
+      printf("\t4 - Restaurar tarea \n"); 
+      printf("\t5 - Listar tareas completadas \n"); 
+      scanf(" %c",&c);
+    } while (c < '1' || (c > '5' && c != 'q'));
+
+    if (c != 'q') {
+      //Para convertir una char dek 0..9 se le resta 48 a eso le sumo 1 para que corresponda con los indices
+      char *coman =  COMANDOS[c -UNO];
+      ejecutar_comando(tareas,coman);
+      printf("Presione '0' para volver al menu anterior o presione otra tecla para salir: \n");
+      scanf(" %c",&c);
+    }
+  } while (c == '0');
+
+}
+
+
 
 
 int main(int argc, char **argv)
@@ -305,6 +339,8 @@ int main(int argc, char **argv)
 
   if (argc == 2) ejecutar_comando(&tareas,argv[1]);
   else if (argc > 2) fprintf(stderr, "ERROR: Demasiados argumentos\n");
+  else if (argc == 1) menu(&tareas);
+  rewind(f);
   guardar_file(f,tareas.incompleta,TAREAS_INCOMPLETAS);
   guardar_file(f,tareas.completa,TAREAS_COMPLETAS);
   fclose(f);
