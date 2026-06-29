@@ -4,20 +4,13 @@
 #include <stdbool.h>
 
 #include "tarea.h"
-
+#include "archivo.h"
 
 //MBFP es por MAX BUFFER FULL PATH para que no quede largo
 #define MBFP MAX_TAREA / 2
 
 
-/* Por el momento este programita va a ser solo para linux */
-#define ARCHIVO ".tareas"
-#define PATH ".config/"
 
-// Estas lineas son las que van a separar en el archivo las tareas.
-#define TAREAS_COMPLETAS "# COMPLETAS\n"
-#define TAREAS_INCOMPLETAS "# INCOMPLETAS\n"
-#define MAX_LE 15
 //No es lo mas optimo pero hacer una table hash me parecio mucho
 #define COMANDOS ((const char*[])  {"-add","-li","-rm","-rst","-lc","-ct"})
 
@@ -29,62 +22,11 @@
 /* La idea es tener tanto tareas completadas como incompletas
  asi de querese poder resetear las completas, tendria que ver tambien
 si mas adelante quiero agregar "Tareas complejar"*/
-typedef struct {
-  tarea_t incompleta;
-  tarea_t completa;
-} estado_t;
-
-
-long size_file(FILE *f)
-{
-  if (f == NULL) exit(1);
-  //Voy al final del archivo
-  int fs = fseek(f,0L,SEEK_END);
-  (void) fs;
-  //guardo la longitud del archivo
-  long n = ftell(f);
-  if (n < 0) {
-    perror("ftell");
-  }
-  //Me posicikono al comienzo del archivo
-  fseek(f,0L,SEEK_SET);
-  return n;
-}
-
-long cargar_file(FILE *f,unsigned char **file_buffer)
-{
-
-  long size = size_file(f);
-  //Si size es cero significa que el archivo acaba de ser creado
-  //No hayu nada que leer.
-  if (size > 0) {
-  *file_buffer = (unsigned char*)malloc(size + 1);
-  size_t ret = fread(*file_buffer,size,1,f);
-  (void)ret;
-  } 
-  return size;
-}
 
 
 
-void cargar_listas(estado_t *tareas, FILE *f)
-{
-  char lineaDeEstado[MAX_LE];
-  char linea[MAX_TAREA];
-  while (fgets(linea,MAX_TAREA,f) != NULL) {
 
-    if (linea[0] == '#') {
-      strcpy(lineaDeEstado,linea);
-    } else {
-      if (strcmp(lineaDeEstado,TAREAS_COMPLETAS) == 0) {
-        agregar_en_lista(&tareas->completa,linea);
-      } else {
-        agregar_en_lista(&tareas->incompleta,linea);
-      }
-    }
-  }
 
-}
   
 
 int selec_lista_imp(estado_t tareas)
@@ -175,16 +117,6 @@ void ejecutar_comando(estado_t *tareas, char *comando)
 }
 
 
-int guardar_file(FILE *f, tarea_t tareas, char *tipo)
-{
-  int n;
-  //Muy "a mano" pero se que va a funcionar.
-  fwrite(tipo,sizeof(char),strlen(tipo),f);
-  for (int i = 0; i < tareas.cantidad; i++) {
-    n = fwrite(tareas.lista[i],sizeof(char),strlen(tareas.lista[i]),f);
-  }
-  return n;
-}
 
 
 void menu(estado_t *tareas)
