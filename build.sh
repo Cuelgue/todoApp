@@ -2,4 +2,4 @@
 
 
 set -e
-cc main.c -Wall -Wextra -o main
+cc main.c tarea.c -Wall -Wextra -ggdb -o main
