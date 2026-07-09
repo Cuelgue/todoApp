@@ -24,7 +24,11 @@
 si mas adelante quiero agregar "Tareas complejar"*/
 
 
-
+void limpiar_buffer()
+{
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF);   
+}
 
 
   
@@ -119,9 +123,10 @@ void ejecutar_comando(estado_t *tareas, char *comando)
 
 
 //FIXME: si la lista esta vacia, al agregar un tarea si metra como agregada pero en .tareas no hay cambio.
+//Parece que el FIXME de la linea anterior se soluciono, como no se el porque voy a dejarlo por si vuelve a aparecer.
 void menu(estado_t *tareas)
 {
-  char c;
+  char c = 0;
   do {
     do {
       printf("Seleccione la opcion deseada o presione 'q' para salir: \n");
@@ -131,20 +136,16 @@ void menu(estado_t *tareas)
       printf("\t4 - Restaurar tarea \n"); 
       printf("\t5 - Listar tareas completadas \n"); 
       printf("\t6 - Marcar tarea completada \n"); 
-      /*
-      tenia un bus con fgets y lo soluciones con esta sugerencia:
-        https://stackoverflow.com/questions/10156696/fgets-not-waiting-for-input
-*/
-      scanf(" %c *[^\n]",&c);
-    } while (c < '1' || (c > '6' && c != 'q'));
-
+      if (c != 0) limpiar_buffer();
+      c = fgetc(stdin);
+    } while  (c < '1' || (c > '6' && c != 'q' ));
     if (c != 'q') {
+      limpiar_buffer();
       //Para convertir una char dek 0..9 se le resta 48 a eso le sumo 1 para que corresponda con los indices
       char *coman =  COMANDOS[c - UNO];
-      fflush(stdin);
       ejecutar_comando(tareas,coman);
       printf("Presione '0' para volver al menu anterior o presione otra tecla para salir: \n");
-      scanf(" %c",&c);
+      c = fgetc(stdin);
     }
   } while (c == '0');
 
