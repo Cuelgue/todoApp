@@ -32,7 +32,7 @@ typedef struct {
   tarea_t completa;
 } estado_t;
 
-void agregar_tarea(char cad[]);
+void agregar_tarea(char cad[],int n);
 
 
 int existe(tarea_t tareas,char *cad);

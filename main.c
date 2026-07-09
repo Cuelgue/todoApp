@@ -77,9 +77,10 @@ void ejecutar_comando(estado_t *tareas, char *comando)
   //Esto es bastante sucio pero por el momento va a funcionar
   //La desgracia es que cada vez que agregue un comendo el if else va a se4r mas grande
   char cad[BUFFER];
+  int tam = sizeof(cad[0]) / sizeof(cad);
   int nt;
   if (strcmp(comando,COMANDOS[0]) == 0 ) {
-    agregar_tarea(cad);
+    agregar_tarea(cad,tam);
     agregar_en_lista(&tareas->incompleta,cad);
     //{"add","ls","rm","rst","lc"})
     imp_lista(tareas->incompleta);
