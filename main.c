@@ -195,6 +195,7 @@ int main(int argc, char **argv)
   guardar_file(f,tareas.incompleta,TAREAS_INCOMPLETAS);
   guardar_file(f,tareas.completa,TAREAS_COMPLETAS);
   fclose(f);
+  lib_tarea_todas(&tareas);
   return 0;
 }
 

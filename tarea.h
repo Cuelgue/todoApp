@@ -27,6 +27,10 @@ typedef struct {
   int cantidad;
 } tarea_t;
 
+typedef struct {
+  tarea_t incompleta;
+  tarea_t completa;
+} estado_t;
 
 void agregar_tarea(char cad[]);
 
@@ -44,4 +48,8 @@ void rc_tarea(tarea_t *dst, tarea_t *src, int pos);
 
 
 void imp_lista(tarea_t lista);
+
+void liberar_tarea(tarea_t *tarea);
+
+void lib_tarea_todas(estado_t *tareas);
 #endif

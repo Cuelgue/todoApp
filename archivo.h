@@ -14,10 +14,6 @@
 #define ARCHIVO ".tareas"
 #define PATH ".config/"
 
-typedef struct {
-  tarea_t incompleta;
-  tarea_t completa;
-} estado_t;
 
 
 long size_file(FILE *f);

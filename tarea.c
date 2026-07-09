@@ -8,7 +8,7 @@ void agregar_tarea(char cad[])
   }
   int salto = strlen(cad);
   cad[salto - 1] = '\0';
-  strncat(cad,INCOMPLETA,sizeof(&cad) - strlen(cad) - 1);
+  strncat(cad,INCOMPLETA,strlen(cad) - 1);
   strncat(cad,"\n",sizeof(&cad) - strlen(cad) - 1);
 }
 
@@ -93,3 +93,16 @@ void imp_lista(tarea_t lista)
   }
 }
 
+void liberar_tarea(tarea_t *tarea)
+{
+  for (int i = 0; i < tarea->cantidad; i++) {
+    free(tarea->lista[i]);
+}
+ }
+
+//La unica diferencia es que aca se lineran todas las tareas.
+void lib_tarea_todas(estado_t *tareas)
+{
+  liberar_tarea(&tareas->incompleta);
+  liberar_tarea(&tareas->completa);
+}
