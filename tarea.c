@@ -1,9 +1,11 @@
 #include "tarea.h"
 
-
 void agregar_tarea(char cad[])
 {
-  fgets(cad,BUFFEF,stdin);
+  if (fgets(cad,BUFFEF,stdin) == NULL) {
+    perror("fgets()");
+    exit(1);
+  }
   int salto = strlen(cad);
   cad[salto - 1] = '\0';
   strncat(cad,INCOMPLETA,sizeof(&cad) - strlen(cad) - 1);
