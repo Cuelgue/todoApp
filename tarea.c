@@ -6,7 +6,7 @@ void agregar_tarea(char cad[], int tam)
     perror("fgets()");
     exit(1);
   }
-  strncat(cad,INCOMPLETA,tam);
+  strncat(cad,INCOMPLETA,tam - strlen(cad));
 }
 
 
